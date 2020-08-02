@@ -9,7 +9,53 @@
 #include "okapi/api/util/mathUtil.hpp"
 
 namespace okapi {
+IMU::IMU(std::uint8_t iport, IMUAxes iaxis):port(iport),axis(iaxis){
+}
 
+IMU::~IMU() = default;
 
+double IMU::get() const {
+  pros::c::euler_s_t eu = pros::c::imu_get_euler(port);
+  static double angle = 0;
+  switch(axis){
+    case IMUAxes::x:
+    angle = eu.roll + offset;
+    break;
+    case IMUAxes::y:
+    angle = eu.pitch + offset;
+    break;
+    case IMUAxes::z:
+    angle = eu.yaw + offset;
+    break;
+  }
+  angle += offset;
+  if(angle > 180 || angle < -180){
+    angle += -360 * (offset/std::abs(offset));
+  }
+  return angle;
+}
+
+double IMU::getRemapped(const double iupperBound, const double ilowerBound) const {
+  double value = get();
+
+  return remapRange(value, -180, 180, ilowerBound, iupperBound);
+}
+
+std::int32_t IMU::reset(){
+  const auto value = get() - offset;
+  offset = -1 * value;
+
+  return 1;
+}
+
+std::int32_t IMU::calibrate(){
+  std::int32_t result = pros::c::imu_reset(port);
+  pros::delay(2100);
+  return result;
+}
+
+double IMU::controllerGet(){
+  return get();
+}
 
 } // namespace okapi
