@@ -5,9 +5,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
- // NEEDS API DOCUMENTATION UPDATES!!!!!
- 
 #pragma once
 
 #include "api.h"
@@ -15,7 +12,6 @@
 #include "okapi/api/device/rotarysensor/continuousRotarySensor.hpp"
 
 namespace okapi {
-
 enum class IMUAxes{
   z, ///< Yaw Axis
   y, ///< Pitch Axis
@@ -38,7 +34,10 @@ class IMU : public ContinuousRotarySensor{
    /**
     * Get the current rotation from the iaxis
     *
-    * @return the current sensor value, or ``PROS_ERR`` on a failure.
+    *@return the current sensor value or one of the following values of `errno`
+    * `ENXIO` - the given iport is not in range of the V5 ports (1-21)
+    * `ENODEV` - the port cannot be configured as an IMU
+    * `EAGAIN` - the sensor is calibrating
     */
     double get() const override;
 
@@ -55,29 +54,36 @@ class IMU : public ContinuousRotarySensor{
     /**
      * Reset the sensor to zero.
      *
-     * @return `1` on success, `PROS_ERR` on fail
+     * @returns `1` on success
      */
     std::int32_t reset() override;
 
     /**
      * Calibrates the IMU
      *
-     * @return `1` on success, `PROS_ERR` on fail
+     * @return `1` on success, or one of the following values of `errno`
+     * `ENXIO` - the given iport is not in range of the V5 ports (1-21)
+     * `ENODEV` - the port cannot be configured as an IMU
+     * `EAGAIN` - the sensor is calibrating
      */
     std::int32_t calibrate();
-
 
     /**
      * Get the sensor value for use in a control loop. This method might be automatically called in
      * another thread by the controller.
      *
-     * @return the current sensor value, or ``PROS_ERR`` on a failure.
+     * @return the current sensor value, or one of the following values of `errno`
+     * `ENXIO` - the given iport is not in range of the V5 ports (1-21)
+     * `ENODEV` - the port cannot be configured as an IMU
+     * `EAGAIN` - the sensor is calibrating
      */
     double controllerGet() override;
 
+    private:
+    double offset = 0; // this offset must invert based on the value currrently measured
+
     protected:
     std::uint8_t port;
-    double offset = 0; // this offset must invert based on the value currrently measured
     IMUAxes axis;
 };
 } // namespace okapi

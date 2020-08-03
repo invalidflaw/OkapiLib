@@ -19,13 +19,13 @@ double IMU::get() const {
   static double angle = 0;
   switch(axis){
     case IMUAxes::x:
-    angle = eu.roll + offset;
+    angle = eu.roll;
     break;
     case IMUAxes::y:
-    angle = eu.pitch + offset;
+    angle = eu.pitch;
     break;
     case IMUAxes::z:
-    angle = eu.yaw + offset;
+    angle = eu.yaw;
     break;
   }
   angle += offset;
