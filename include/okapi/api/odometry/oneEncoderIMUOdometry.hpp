@@ -33,7 +33,7 @@ class OneEncoderIMUOdometry : public Odometry {
                      const ChassisScales &ichassisScales,
                      const std::shared_ptr<Logger> &ilogger = Logger::getDefaultLogger());
 
-  virtual ~OnceEncoderIMUOdometry() = default;
+  virtual ~OneEncoderIMUOdometry() = default;
 
   /**
    * Sets the drive and turn scales.
