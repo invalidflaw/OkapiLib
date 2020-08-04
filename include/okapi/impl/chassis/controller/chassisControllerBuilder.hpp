@@ -19,6 +19,7 @@
 #include "okapi/impl/device/motor/motorGroup.hpp"
 #include "okapi/impl/device/rotarysensor/adiEncoder.hpp"
 #include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
+#include "okapi/impl/device/rotarysensor/IMU.hpp"
 #include "okapi/impl/util/timeUtilFactory.hpp"
 
 namespace okapi {
@@ -189,6 +190,18 @@ class ChassisControllerBuilder {
                                         const IntegratedEncoder &iright,
                                         const ADIEncoder &imiddle);
 
+
+
+ /**
+  * Sets the sensors. The default sensors are the motor's integrated encoders.
+  *
+  * @param iforward The forward sensor.
+  * @param irotation The rotation sensor.
+  * @return An ongoing builder.
+  */
+  ChassisControllerBuilder &withSensors(const ADIEncoder &iforward,
+                                        const IMU &irotation);
+
   /**
    * Sets the sensors. The default sensors are the motor's integrated encoders.
    *
@@ -210,6 +223,19 @@ class ChassisControllerBuilder {
   ChassisControllerBuilder &withSensors(const std::shared_ptr<ContinuousRotarySensor> &ileft,
                                         const std::shared_ptr<ContinuousRotarySensor> &iright,
                                         const std::shared_ptr<ContinuousRotarySensor> &imiddle);
+
+
+    /**
+     * Sets the sensors. The default sensors are the motor's integrated encoders.
+     *
+     * @param ileft The left side sensor.
+     * @param iright The right side sensor.
+     * @return An ongoing builder.
+     */
+    ChassisControllerBuilder &withSensors(const std::shared_ptr<ContinuousRotarySensor> &ileft,
+                                          const std::shared_ptr<ContinuousRotarySensor> &iright,
+                                          const std::shared_ptr<ContinuousRotarySensor> &iforward,
+                                          const std::shared_ptr<ContinuousRotarySensor> &irotation);
 
   /**
    * Sets the PID controller gains, causing the builder to generate a ChassisControllerPID. Uses the
@@ -442,6 +468,11 @@ class ChassisControllerBuilder {
   std::shared_ptr<ContinuousRotarySensor> leftSensor{nullptr};
   std::shared_ptr<ContinuousRotarySensor> rightSensor{nullptr};
   std::shared_ptr<ContinuousRotarySensor> middleSensor{nullptr};
+  std::shared_ptr<ContinuousRotarySensor> forwardSensor{nullptr};
+  std::shared_ptr<ContinuousRotarySensor> rotationSensor{nullptr};
+
+
+  //TODO: add way to include rotation sensor and direction sesnsor.
 
   bool hasGains{false}; // Whether gains were passed, no gains means CCI
   IterativePosPIDController::Gains distanceGains;

@@ -8,7 +8,9 @@
 #include "okapi/impl/chassis/controller/chassisControllerBuilder.hpp"
 #include "okapi/api/chassis/model/threeEncoderSkidSteerModel.hpp"
 #include "okapi/api/chassis/model/threeEncoderXDriveModel.hpp"
+#include "okapi/api/chassis/model/oneEncoderIMUSkidSteerModel.hpp"
 #include "okapi/api/odometry/threeEncoderOdometry.hpp"
+#include "okapi/api/odometry/oneEncoderIMUOdometry.hpp"
 #include "okapi/impl/util/configurableTimeUtilFactory.hpp"
 #include "okapi/impl/util/rate.hpp"
 #include "okapi/impl/util/timer.hpp"
@@ -162,6 +164,15 @@ ChassisControllerBuilder::withSensors(const okapi::IntegratedEncoder &ileft,
                      std::make_shared<ADIEncoder>(imiddle));
 }
 
+//TODO: Specific with sensor for ADIEncoder and IMU
+ChassisControllerBuilder &ChassisControllerBuilder::withSensors(const ADIEncoder &iforward,
+                                                                const IMU &irotation) {
+  return withSensors(leftSensor, rightSensor,
+                     std::make_shared<ADIEncoder>(iforward),
+                     std::make_shared<IMU>(irotation));
+}
+
+
 ChassisControllerBuilder &
 ChassisControllerBuilder::withSensors(const std::shared_ptr<ContinuousRotarySensor> &ileft,
                                       const std::shared_ptr<ContinuousRotarySensor> &iright) {
@@ -179,6 +190,19 @@ ChassisControllerBuilder &ChassisControllerBuilder::withSensors(
   leftSensor = ileft;
   rightSensor = iright;
   middleSensor = imiddle;
+  return *this;
+}
+
+//TODO: ADD a withSensors for forwardEncoder and IMU
+ChassisControllerBuilder &
+ChassisControllerBuilder::withSensors(const std::shared_ptr<okapi::ContinuousRotarySensor> &ileft,
+                                     const std::shared_ptr<okapi::ContinuousRotarySensor> &iright,
+                                     const std::shared_ptr<ContinuousRotarySensor> &iforward,
+                                     const std::shared_ptr<ContinuousRotarySensor> &irotation) {
+  leftSensor = ileft;
+  rightSensor = iright;
+  forwardSensor = iforward;
+  rotationSensor = irotation;
   return *this;
 }
 
@@ -373,7 +397,13 @@ ChassisControllerBuilder::buildDOCC(std::shared_ptr<ChassisController> chassisCo
                                                       chassisController->getModel(),
                                                       odomScales,
                                                       controllerLogger);
-    } else {
+    } else if (forwardSensor !=nullptr){
+      odometry = std::make_shared<OneEncoderIMUOdometry>(odometryTimeUtilFactory.create(),
+                                                         chassisController->getModel(),
+                                                         odomScales,
+                                                         controllerLogger);
+
+    }else {
       odometry = std::make_shared<ThreeEncoderOdometry>(odometryTimeUtilFactory.create(),
                                                         chassisController->getModel(),
                                                         odomScales,
@@ -498,7 +528,16 @@ std::shared_ptr<SkidSteerModel> ChassisControllerBuilder::makeSkidSteerModel() {
                                                         middleSensor,
                                                         maxVelocity,
                                                         maxVoltage);
-  } else {
+  } else if (forwardSensor !=nullptr){
+      return std::make_shared<OneEncoderIMUSkidSteerModel>(skidSteerMotors.left,
+                                              skidSteerMotors.right,
+                                              leftSensor,
+                                              rightSensor,
+                                              forwardSensor,
+                                              rotationSensor,
+                                              maxVelocity,
+                                              maxVoltage);
+  }else {
     return std::make_shared<SkidSteerModel>(skidSteerMotors.left,
                                             skidSteerMotors.right,
                                             leftSensor,
