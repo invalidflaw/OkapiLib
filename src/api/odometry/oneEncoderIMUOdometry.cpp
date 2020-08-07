@@ -1,5 +1,5 @@
 /*
- * @author Ryan Benasutti, WPI
+ * @author Ryan Thomas, UNL
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -44,9 +44,8 @@ void OneEncoderIMUOdometry::step() {
 
 OdomState OneEncoderIMUOdometry::odomMathStep(const std::valarray<std::int32_t> &itickDiff, const QTime &) {
   //TODO: Implement code for odometry step.
-  
 
-  /* if (itickDiff.size() < 2) {
+  if (itickDiff.size() < 2) {
     LOG_ERROR_S("OneEncoderIMUOdometry: itickDiff did not have at least two elements.");
     return OdomState{};
   }
@@ -60,28 +59,13 @@ OdomState OneEncoderIMUOdometry::odomMathStep(const std::valarray<std::int32_t> 
     }
   }
 
-  const double deltaL = itickDiff[0] / chassisScales.straight;
-  const double deltaR = itickDiff[1] / chassisScales.straight;
+  const double currentAngle = model->getSensorVals()[1];
+  const double deltaTranslation = itickDiff[0];
+  const double deltaTheta = itickDiff[1];
 
-  double deltaTheta = (deltaL - deltaR) / chassisScales.wheelTrack.convert(meter);
-  double localOffX, localOffY;
-
-  if (deltaTheta != 0) {
-    localOffX = 2 * std::sin(deltaTheta / 2) * chassisScales.middleWheelDistance.convert(meter);
-    localOffY = 2 * std::sin(deltaTheta / 2) *
-                (deltaR / deltaTheta + chassisScales.wheelTrack.convert(meter) / 2);
-  } else {
-    localOffX = 0;
-    localOffY = deltaR;
-  }
-
-  double avgA = state.theta.convert(radian) + (deltaTheta / 2);
-
-  double polarR = std::sqrt(localOffX * localOffX + localOffY * localOffY);
-  double polarA = std::atan2(localOffY, localOffX) - avgA;
-
-  double dX = std::sin(polarA) * polarR;
-  double dY = std::cos(polarA) * polarR;
+  double moveDistance = deltaTranslation / chassisScales.straight; //Not sure what this value should be
+  double dX = (moveDistance * std::cos(currentAngle * 0.0174533)); //Not sure what this number is
+  double dY = (moveDistance * std::sin(currentAngle * 0.0174533));
 
   if (isnan(dX)) {
     dX = 0;
@@ -91,11 +75,7 @@ OdomState OneEncoderIMUOdometry::odomMathStep(const std::valarray<std::int32_t> 
     dY = 0;
   }
 
-  if (isnan(deltaTheta)) {
-    deltaTheta = 0;
-  }
-
-  return OdomState{dX * meter, dY * meter, deltaTheta * radian}; */
+  return OdomState{dX * meter, dY * meter, deltaTheta * radian};
 }
 
 OdomState OneEncoderIMUOdometry::getState(const StateMode &imode) const {
