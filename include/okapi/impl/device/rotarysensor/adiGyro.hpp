@@ -24,8 +24,6 @@ class ADIGyro : public ContinuousRotarySensor {
    */
   ADIGyro(std::uint8_t iport, double imultiplier = 1);
 
-  virtual ~ADIGyro();
-
   /**
    * Get the current sensor value.
    *
