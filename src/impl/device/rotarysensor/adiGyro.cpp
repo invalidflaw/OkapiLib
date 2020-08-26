@@ -13,8 +13,6 @@ ADIGyro::ADIGyro(const std::uint8_t iport, const double imultiplier)
   : gyro(pros::c::adi_gyro_init(iport, imultiplier)) {
 }
 
-ADIGyro::~ADIGyro() = default;
-
 double ADIGyro::get() const {
   return pros::c::adi_gyro_get(gyro);
 }
